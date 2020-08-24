@@ -89,7 +89,7 @@ class TasksController extends Controller
         // メッセージを更新
         $task->title = $request->status;    // 追加
         $task->content = $request->content;
-        $taske->save();
+        $task->save();
 
         // トップページへリダイレクトさせる
         return redirect('/');
