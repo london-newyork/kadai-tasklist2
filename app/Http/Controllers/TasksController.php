@@ -32,8 +32,8 @@ class TasksController extends Controller
             ];
         }
 
-        // Welcomeビューでそれらを表示
-        return view('welcome', $data);
+        // トップページでそれらを表示
+        return view('tasks.index', $data);
         
     }
 
@@ -50,19 +50,20 @@ class TasksController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+        public function store(Request $request)
     {
+        //dd($request->status);
         // バリデーション
         $request->validate([
-            'status' => 'required|max:10',   // 追加
             'content' => 'required|max:255',
+            'status' => 'required|max:10',
         ]);
 
-        // メッセージを作成
-        $task = new Task;
-        $task->status = $request->status;    // 追加
-        $task->content = $request->content;
-        $task->save();
+        // 認証済みユーザ（閲覧者）の投稿として作成（リクエストされた値をもとに作成）
+        $request->user()->tasks()->create([
+            'content' => $request->content,
+            'status' => $request->status,
+        ]);
 
         // トップページへリダイレクトさせる
         return redirect('/');
@@ -109,18 +110,21 @@ class TasksController extends Controller
         $task->save();
 
         // トップページへリダイレクトさせる
-        return redirect('/');
+        return redirect('tasks.index');
     }
 
     // deleteでtasks/idにアクセスされた場合の「削除処理」
     public function destroy($id)
     {
-        // idの値でタスクを検索して取得
-        $task = Task::findOrFail($id);
-        // タスクを削除
-        $task->delete();
+        // idの値で投稿を検索して取得
+        $tasks = \App\tasks::findOrFail($id);
 
-        // トップページへリダイレクトさせる
-        return redirect('/');
+        // 認証済みユーザ（閲覧者）がその投稿の所有者である場合は、投稿を削除
+        if (\Auth::id() === $tasks->user_id) {
+            $tasks->delete();
+        }
+
+        // 前のURLへリダイレクトさせる
+        return back();
     }
 }

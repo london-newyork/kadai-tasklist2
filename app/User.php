@@ -39,6 +39,13 @@ class User extends Authenticatable
     
     public function loadRelationshipCounts()
     {
-        $this->loadCount('tasklist');
+        $this->loadCount('tasks');
+    }
+        /**
+     * このユーザが所有する投稿。（ Taskモデルとの関係を定義）
+     */
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
     }
 }
